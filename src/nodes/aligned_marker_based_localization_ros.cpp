@@ -89,14 +89,15 @@ int main(int argc, char* argv[])
 
     ros::init(argc, argv, "marker_based_localization");
     ros::NodeHandle nh;
+    ros::NodeHandle nh_private("~");
     tf2_ros::TransformListener tf_listener(tf_buffer);
 
-    nh.param("marker_size", marker_size, 0.1);
-    nh.param("max_new_marker_error", max_new_marker_error, 0.08);
-    nh.param("max_track_error", max_track_error, 0.2);
-    nh.param("update_rate", update_rate, 8.0);
-    nh.getParam("base_link", base_link);
-    nh.param<std::string>("world_frame", world_frame, "map");
+    nh_private.param("marker_size", marker_size, 0.1);
+    nh_private.param("max_new_marker_error", max_new_marker_error, 0.08);
+    nh_private.param("max_track_error", max_track_error, 0.2);
+    nh_private.param("update_rate", update_rate, 8.0);
+    nh_private.getParam("base_link", base_link);
+    nh_private.param<std::string>("world_frame", world_frame, "map");
     max_error = std::max(max_new_marker_error, max_track_error);
 
     marker_publisher = nh.advertise<marker_msgs::MarkerWithCovarianceArray>("markers", 0);

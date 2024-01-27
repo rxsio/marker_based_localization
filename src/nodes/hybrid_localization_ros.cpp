@@ -111,17 +111,18 @@ int main(int argc, char* argv[])
     std::vector<double> marker_offset;
 
     ros::init(argc, argv, "marker_based_localization");
-    ros::NodeHandle nh("~");
+    ros::NodeHandle nh;
+    ros::NodeHandle nh_private("~");
     tf2_ros::TransformListener tf_listener(tf_buffer);
 
-    nh.param("marker_size", marker_size, 0.1);
-    nh.param("max_new_marker_error", max_new_marker_error, 0.08);
-    nh.param("max_track_error", max_track_error, 0.2);
-    nh.param("update_rate", update_rate, 8.0);
-    nh.getParam("covariance_diagonal", covariance_diagonal);
-    nh.getParam("marker_offset", marker_offset);
-    nh.getParam("base_link", base_link);
-    nh.param<std::string>("world_frame", world_frame, "map");
+    nh_private.param("marker_size", marker_size, 0.1);
+    nh_private.param("max_new_marker_error", max_new_marker_error, 0.08);
+    nh_private.param("max_track_error", max_track_error, 0.2);
+    nh_private.param("update_rate", update_rate, 8.0);
+    nh_private.getParam("covariance_diagonal", covariance_diagonal);
+    nh_private.getParam("marker_offset", marker_offset);
+    nh_private.getParam("base_link", base_link);
+    nh_private.param<std::string>("world_frame", world_frame, "map");
     if (marker_offset.size() == 3)
     {
         offset = Eigen::Translation3d(marker_offset[0], marker_offset[1], marker_offset[2]);
