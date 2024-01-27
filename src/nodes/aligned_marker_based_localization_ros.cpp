@@ -37,81 +37,81 @@ double max_error;
 
 void camera_callback(const sensor_msgs::ImageConstPtr& image, const sensor_msgs::CameraInfoConstPtr& camera_info)
 {
-  try
-  {
-    AlignedMarkerLocalization marker_localization;
-    MarkerContainer<AlignedMarker> markers_in_world_frame;
-    auto cv_image = cv_bridge::toCvShare(image, sensor_msgs::image_encodings::BGR8);
-    auto markers = artag_detector.detect(cv_image->image);
-    if (markers.empty())
+    try
     {
-      return;
-    }
+        AlignedMarkerLocalization marker_localization;
+        MarkerContainer<AlignedMarker> markers_in_world_frame;
+        auto cv_image = cv_bridge::toCvShare(image, sensor_msgs::image_encodings::BGR8);
+        auto markers = artag_detector.detect(cv_image->image);
+        if (markers.empty())
+        {
+            return;
+        }
 
-    auto cam_to_base_link =
-        get_cam_to_base_link_transform(tf_buffer, image->header.frame_id, base_link, image->header.stamp);
-    if (!cam_to_base_link)
+        auto cam_to_base_link =
+            get_cam_to_base_link_transform(tf_buffer, image->header.frame_id, base_link, image->header.stamp);
+        if (!cam_to_base_link)
+        {
+            return;
+        }
+
+        markers.changeReferenceFrame(tf2::transformToEigen(*cam_to_base_link));
+
+        markers_in_world_frame = lookup_markers_in_world_frame(tf_buffer, markers, world_frame, image->header.stamp);
+        marker_localization.setWorldFrames(markers_in_world_frame);
+        auto pose = marker_localization.localize(markers);
+
+        // publish pose
+        if (pose)
+        {
+            geometry_msgs::PoseWithCovarianceStamped pose_msg;
+            pose_msg.header.frame_id = world_frame;
+            pose_msg.header.stamp = image->header.stamp;
+            pose_msg.pose.pose = tf2::toMsg(*pose);
+            pose_publisher.publish(pose_msg);
+        }
+
+        auto markers_msg = toMsg(markers, image->header.stamp, image->header.frame_id);
+        marker_publisher.publish(markers_msg);
+    }
+    catch (const std::exception& e)
     {
-      return;
+        ROS_ERROR("%s", e.what());
     }
-
-    markers.changeReferenceFrame(tf2::transformToEigen(*cam_to_base_link));
-
-    markers_in_world_frame = lookup_markers_in_world_frame(tf_buffer, markers, world_frame, image->header.stamp);
-    marker_localization.setWorldFrames(markers_in_world_frame);
-    auto pose = marker_localization.localize(markers);
-
-    // publish pose
-    if (pose)
-    {
-      geometry_msgs::PoseWithCovarianceStamped pose_msg;
-      pose_msg.header.frame_id = world_frame;
-      pose_msg.header.stamp = image->header.stamp;
-      pose_msg.pose.pose = tf2::toMsg(*pose);
-      pose_publisher.publish(pose_msg);
-    }
-
-    auto markers_msg = toMsg(markers, image->header.stamp, image->header.frame_id);
-    marker_publisher.publish(markers_msg);
-  }
-  catch (const std::exception& e)
-  {
-    ROS_ERROR("%s", e.what());
-  }
 }
 
 int main(int argc, char* argv[])
 {
-  double marker_size;
-  double max_new_marker_error;
-  double max_track_error;
-  double update_rate;
+    double marker_size;
+    double max_new_marker_error;
+    double max_track_error;
+    double update_rate;
 
-  ros::init(argc, argv, "marker_based_localization");
-  ros::NodeHandle nh("~");
-  tf2_ros::TransformListener tf_listener(tf_buffer);
+    ros::init(argc, argv, "marker_based_localization");
+    ros::NodeHandle nh;
+    tf2_ros::TransformListener tf_listener(tf_buffer);
 
-  nh.param("marker_size", marker_size, 0.1);
-  nh.param("max_new_marker_error", max_new_marker_error, 0.08);
-  nh.param("max_track_error", max_track_error, 0.2);
-  nh.param("update_rate", update_rate, 8.0);
-  nh.getParam("base_link", base_link);
-  nh.param<std::string>("world_frame", world_frame, "map");
-  max_error = std::max(max_new_marker_error, max_track_error);
+    nh.param("marker_size", marker_size, 0.1);
+    nh.param("max_new_marker_error", max_new_marker_error, 0.08);
+    nh.param("max_track_error", max_track_error, 0.2);
+    nh.param("update_rate", update_rate, 8.0);
+    nh.getParam("base_link", base_link);
+    nh.param<std::string>("world_frame", world_frame, "map");
+    max_error = std::max(max_new_marker_error, max_track_error);
 
-  marker_publisher = nh.advertise<marker_msgs::MarkerWithCovarianceArray>("markers", 0);
-  pose_publisher = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("pose", 0);
+    marker_publisher = nh.advertise<marker_msgs::MarkerWithCovarianceArray>("markers", 0);
+    pose_publisher = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("pose", 0);
 
-  image_transport::ImageTransport it(nh);
-  auto camera_subscriber = it.subscribeCamera("image", 1, &camera_callback);
-  artag_detector.init(nh, camera_subscriber.getInfoTopic(), marker_size, max_new_marker_error, max_track_error);
+    image_transport::ImageTransport it(nh);
+    auto camera_subscriber = it.subscribeCamera("image", 1, &camera_callback);
+    artag_detector.init(nh, camera_subscriber.getInfoTopic(), marker_size, max_new_marker_error, max_track_error);
 
-  ros::Rate rate(update_rate);
-  while (ros::ok())
-  {
-    ros::spinOnce();
-    rate.sleep();
-  }
+    ros::Rate rate(update_rate);
+    while (ros::ok())
+    {
+        ros::spinOnce();
+        rate.sleep();
+    }
 
-  return 0;
+    return 0;
 }

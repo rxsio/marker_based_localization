@@ -17,25 +17,26 @@ boost::optional<geometry_msgs::TransformStamped> get_cam_to_base_link_transform(
 template <typename T>
 MarkerContainer<T> lookup_markers_in_world_frame(const tf2::BufferCore& tf_buffer,
                                                  const MarkerContainer<T>& markers_in_camera_frame,
-                                                 const std::string& world_frame, const ros::Time& stamp)
+                                                 const std::string& world_frame,
+                                                 const ros::Time& stamp)
 {
-  MarkerContainer<T> markers_in_world_frame;
-  for (auto& marker : markers_in_camera_frame)
-  {
-    // Look for marker pose in world frame in tf
-    std::string marker_frame = "artag_" + std::to_string(marker.id);
-    geometry_msgs::TransformStamped marker_in_world;
-    try
+    MarkerContainer<T> markers_in_world_frame;
+    for (auto& marker : markers_in_camera_frame)
     {
-      marker_in_world = tf_buffer.lookupTransform(world_frame, marker_frame, stamp);
+        // Look for marker pose in world frame in tf
+        std::string marker_frame = "artag_" + std::to_string(marker.id);
+        geometry_msgs::TransformStamped marker_in_world;
+        try
+        {
+            marker_in_world = tf_buffer.lookupTransform(world_frame, marker_frame, stamp);
+        }
+        catch (tf2::TransformException ex)
+        {
+            ROS_WARN("%s", ex.what());
+            continue;
+        }
+        markers_in_world_frame.add({ marker.id, tf2::transformToEigen(marker_in_world) });
     }
-    catch (tf2::TransformException ex)
-    {
-      ROS_WARN("%s", ex.what());
-      continue;
-    }
-    markers_in_world_frame.add({ marker.id, tf2::transformToEigen(marker_in_world) });
-  }
-  return markers_in_world_frame;
+    return markers_in_world_frame;
 }
 #endif  // TF2_HELPERS_HPP
