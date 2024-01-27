@@ -1,10 +1,8 @@
 #ifndef TF2_HELPERS_HPP
 #define TF2_HELPERS_HPP
 
-#include "boost/optional.hpp"
 #include "geometry_msgs/TransformStamped.h"
 #include "marker_based_localization/markers/marker_container.hpp"
-#include "ros/ros.h"
 #include "tf2/buffer_core.h"
 #include "tf2/exceptions.h"
 #include <tf2_eigen/tf2_eigen.h>

@@ -2,7 +2,6 @@
 #define MARKER_HPP
 
 #include <Eigen/Geometry>
-#include "Eigen/src/Geometry/RotationBase.h"
 #include <ros/ros.h>
 
 using Eigen::Isometry3d;

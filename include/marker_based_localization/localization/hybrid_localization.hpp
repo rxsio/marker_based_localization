@@ -5,7 +5,6 @@
 // #include <MarkerLocalization.hpp>
 #include <marker_based_localization/localization/marker_based_localization.hpp>
 #include <boost/optional.hpp>
-#include "ros/ros.h"
 
 using Eigen::Isometry3d;
 using Eigen::Quaterniond;

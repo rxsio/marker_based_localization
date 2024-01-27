@@ -1,10 +1,6 @@
 #include <marker_based_localization/localization/hybrid_localization.hpp>
-#include "geometry_msgs/Transform.h"
 #include "image_transport/camera_subscriber.h"
 #include "marker_based_localization/detection/artag_detection.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-#include "tf2/LinearMath/Transform.h"
-#include "tf2/transform_datatypes.h"
 #include <algorithm>
 #include <ar_track_alvar_msgs/AlvarMarker.h>
 #include <ar_track_alvar_msgs/AlvarMarkers.h>

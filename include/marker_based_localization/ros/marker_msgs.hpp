@@ -1,14 +1,12 @@
 #ifndef ROS_MARKER_MSGS_HPP
 #define ROS_MARKER_MSGS_HPP
 
-#include <array>
 #include <marker_based_localization/markers/marker.hpp>
 #include <marker_msgs/MarkerWithCovariance.h>
 #include <marker_msgs/MarkerWithCovarianceStamped.h>
 #include <marker_msgs/MarkerWithCovarianceArray.h>
 #include <marker_based_localization/markers/marker_container.hpp>
 #include <string>
-#include "Eigen/src/Core/Matrix.h"
 #include "ros/time.h"
 #include <tf2_eigen/tf2_eigen.h>
 #include <ros/ros.h>
